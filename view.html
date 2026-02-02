@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ABBVPN ULTIMATE</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b0f1a;
+            --card: #161b2c;
+            --accent: #3b82f6;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --text: #ffffff;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; margin: 0; overflow: hidden; user-select: none;
+        }
+
+        /* Заголовок */
+        .header {
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 26px; font-weight: 800; letter-spacing: 3px; margin: 0;
+            background: linear-gradient(45deg, #3b82f6, #60a5fa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        /* Блок лицензии */
+        .card {
+            background: var(--card);
+            padding: 20px; border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 300px; text-align: center; margin-bottom: 20px;
+        }
+
+        input {
+            background: rgba(0,0,0,0.2);
+            color: white; border: 2px solid #2d3446;
+            padding: 12px; border-radius: 12px;
+            width: 100%; box-sizing: border-box;
+            text-align: center; outline: none; transition: 0.3s;
+        }
+        input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+
+        #premium-badge {
+            color: #facc15; font-size: 13px; font-weight: bold;
+            margin-top: 10px; display: none;
+            text-shadow: 0 0 10px rgba(250, 204, 21, 0.4);
+        }
+
+        /* ID Устройства */
+        .hwid-tag {
+            font-size: 9px; color: #4b5563; margin-top: 15px;
+            cursor: pointer; word-break: break-all; opacity: 0.7; transition: 0.2s;
+        }
+        .hwid-tag:hover { opacity: 1; color: var(--accent); }
+
+        /* Выбор провайдера */
+        select {
+            background: #1e2538; color: white; padding: 12px;
+            width: 300px; border: 1px solid #2d3446;
+            border-radius: 16px; outline: none; cursor: pointer;
+            font-weight: 600; font-size: 14px; margin-bottom: 30px;
+        }
+
+        /* Кнопка включения */
+        .power-btn {
+            width: 130px; height: 130px; border-radius: 40px;
+            background: #1e2538; color: var(--danger);
+            border: none; cursor: pointer;
+            box-shadow: 10px 10px 20px #05070c, -5px -5px 15px #242d44;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .power-btn .material-icons-round { font-size: 64px; }
+        
+        .active .power-btn {
+            color: var(--success);
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.2), inset 2px 2px 5px rgba(0,0,0,0.5);
+            transform: scale(0.95);
+        }
+
+        /* Текст статуса */
+        .status-text {
+            margin-top: 25px; font-size: 16px; font-weight: 700;
+            color: #4b5563; letter-spacing: 1px;
+        }
+        .active .status-text { color: var(--success); }
+
+        /* Сообщение об ошибке (Скрытое) */
+        #error-msg {
+            position: absolute; bottom: 20px;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            padding: 10px 20px; border-radius: 12px;
+            font-size: 12px; font-weight: 600;
+            border: 1px solid var(--danger);
+            display: none; animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp { from {transform: translateY(20px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
+    </style>
+</head>
+<body id="body-container">
+
+    <div class="header">
+        <h1><span class="material-icons-round">verified_user</span> ABBVPN</h1>
+    </div>
+
+    <div class="card">
+        <input type="text" id="lic-input" placeholder="Ключ активации">
+        <div id="premium-badge">👑 PREMIUM АКТИВИРОВАН</div>
+        <div class="hwid-tag" id="hwid-display">ID: загрузка...</div>
+    </div>
+
+    <div class="select-box">
+        <select id="prov-select">
+            <option value="vless">🚀 INSTAGRAM+IP (Premium)</option>
+            <option value="universal">🌍 ЮТУБ: Универсальный</option>
+            <option value="domru">🔴 ДОМ.РУ (ЭР-Телеком)</option>
+            <option value="rostelecom">🔵 РОСТЕЛЕКОМ / Tele2</option>
+            <option value="mts">🥚 МТС / МГТС</option>
+            <option value="beeline">🟡 БИЛАЙН</option>
+            <option value="megafon">🟢 МЕГАФОН</option>
+        </select>
+    </div>
+
+    <button class="power-btn" onclick="toggle()">
+        <span class="material-icons-round">power_settings_new</span>
+    </button>
+
+    <div class="status-text" id="status">ОТКЛЮЧЕНО</div>
+
+    <div id="error-msg">Ошибка!</div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        let isOn = false, isPremium = false;
+
+        const body = document.getElementById('body-container'),
+              status = document.getElementById('status'),
+              select = document.getElementById('prov-select'),
+              licInput = document.getElementById('lic-input'),
+              badge = document.getElementById('premium-badge'),
+              errorBox = document.getElementById('error-msg'),
+              hwidBox = document.getElementById('hwid-display');
+
+        // Показ внутренней ошибки вместо alert
+        function showError(text) {
+            errorBox.innerText = text;
+            errorBox.style.display = 'block';
+            setTimeout(() => { errorBox.style.display = 'none'; }, 4000);
+        }
+
+        window.onload = () => {
+            ipcRenderer.send('get-hwid');
+            ipcRenderer.send('load-saved-key');
+        };
+
+        ipcRenderer.on('hwid-data', (e, id) => {
+            hwidBox.innerText = "ID: " + id;
+            hwidBox.onclick = () => {
+                navigator.clipboard.writeText(id);
+                showError("ID скопирован в буфер");
+            };
+        });
+
+        ipcRenderer.on('key-loaded', (e, key) => {
+            licInput.value = key;
+            ipcRenderer.send('check-license', key);
+        });
+
+        ipcRenderer.on('license-result', (e, success) => {
+            if (success) {
+                isPremium = true;
+                badge.style.display = "block";
+                licInput.style.display = "none";
+                if(status.innerText === "ПРОВЕРКА...") start('vless');
+            } else {
+                status.innerText = "ОТКЛЮЧЕНО";
+                if(licInput.value !== "") showError("Ключ не подходит для этого устройства");
+            }
+        });
+
+        function toggle() {
+            if (!isOn) {
+                if (select.value === 'vless' && !isPremium) {
+                    if (licInput.value === "") return showError("Сначала введите Premium ключ!");
+                    status.innerText = "ПРОВЕРКА...";
+                    ipcRenderer.send('check-license', licInput.value.trim());
+                } else { start(select.value); }
+            } else { stop(); }
+        }
+
+        function start(mode) {
+            isOn = true;
+            body.classList.add('active');
+            status.innerText = "СОЕДИНЕНИЕ...";
+            select.disabled = true;
+            ipcRenderer.send('start-vpn', mode);
+            setTimeout(() => { if(isOn) status.innerText = "РАБОТАЕТ"; }, 2000);
+        }
+
+        function stop() {
+            isOn = false;
+            body.classList.remove('active');
+            status.innerText = "ОТКЛЮЧЕНО";
+            select.disabled = false;
+            ipcRenderer.send('stop-vpn');
+        }
+    </script>
+</body>
+</html>
